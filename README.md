@@ -1,7 +1,7 @@
 # TheTechBlog
 This a website developed on PHP and has a content management system
 
-Visit site at [http://hitesh-patel.infinityfreeapp.com/mycms/](http://hitesh-patel.infinityfreeapp.com/mycms/)
+Live site: [TheTechBlog](https://techblogui-cxf7b3g0fzdxdkht.canadacentral-01.azurewebsites.net/index.php)
 
 ## SQL Server setup
 
@@ -29,11 +29,12 @@ the server certificate.
 
 ## Azure App Service deployment
 
-Create a **Linux Web App** and choose **Publish: Code** with the **PHP 8.5**
-runtime stack. Deploy the repository's PHP files with the Azure App Service
-extension for Visual Studio Code or your preferred App Service deployment
-method. The app is served from the repository root; no custom startup command
-or container port setting is required.
+The site is hosted on [Azure App Service](https://techblogui-cxf7b3g0fzdxdkht.canadacentral-01.azurewebsites.net/index.php)
+as a **Linux Web App** using **Publish: Code** and the **PHP 8.5** runtime stack.
+Deploy the repository's PHP files with the Azure App Service extension for
+Visual Studio Code or your preferred App Service deployment method. The app
+is served from the repository root; no custom startup command or container
+port setting is required.
 
 In the Web App's **Environment variables** settings, add
 `SQLSERVER_HOST`, `SQLSERVER_DATABASE`, `SQLSERVER_USERNAME`, and
@@ -45,8 +46,14 @@ setting or Key Vault reference. Do not deploy `.env` or commit production
 credentials.
 
 Allow the Web App's outbound IP addresses in the Azure SQL firewall, or
-configure private networking. Enable App Service **Health check** with the path
-`/health.php`; it returns success only when a database query succeeds. After
-deployment, verify the health check and an image URL. The PHP runtime must
-provide `pdo_sqlsrv` and GD; if either extension is unavailable in the selected
-runtime, use a custom container deployment instead.
+configure private networking. Enabling **Allow Azure services and resources to
+access this server** is a simpler but broader firewall alternative; it allows
+Azure resources beyond this Web App. Enable App Service **Health check** with
+the path `/health.php`; it returns success only when a database query succeeds.
+The deployed site has been verified to render the homepage and article/author
+images. Its image endpoint recognizes WebP by its file signature and serves
+WebP directly if GD lacks WebP support.
+
+The built-in PHP 8.5 runtime must provide `pdo_sqlsrv` and GD. Check available
+extensions in the deployed runtime (for example, through SSH/Kudu); if either
+is unavailable, use a custom container deployment instead.
