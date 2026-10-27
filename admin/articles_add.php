@@ -12,18 +12,22 @@ if (isset($_POST['title'])) {
 
   if ($_POST['title'] and $_POST['content']) {
 
-    $query = 'INSERT INTO articles (
+    $query = $connect->prepare('INSERT INTO articles (
         title,
         content,
         publishDate,
         authorId
       ) VALUES (
-         "' . mysqli_real_escape_string($connect, $_POST['title']) . '",
-         "' . mysqli_real_escape_string($connect, $_POST['content']) . '",
-         NOW(),
-         "' . mysqli_real_escape_string($connect, $_POST['authorId']) . '"
-      )';
-    mysqli_query($connect, $query);
+         :title,
+         :content,
+         SYSDATETIME(),
+         :authorId
+      )');
+    $query->execute([
+      'title' => $_POST['title'],
+      'content' => $_POST['content'],
+      'authorId' => (int) $_POST['authorId'],
+    ]);
 
     set_message('Article has been added');
   }
@@ -74,13 +78,10 @@ include('includes/header.php');
       <td>
         <?php
         // get authors to populate dropdown
-        $authorsquery = 'SELECT *
-        FROM author';
-
-        $authorsResult = mysqli_query($connect, $authorsquery);
+        $authorsResult = $connect->query('SELECT * FROM author');
 
         echo '<select name="authorId" id="authorId">';
-        while ($author = mysqli_fetch_assoc($authorsResult)) {
+        while ($author = $authorsResult->fetch()) {
           echo '<option value="' . $author['id'] . '"';
           echo '>' . $author['firstName'] . ' ' . $author['lastName'] . '</option>';
         }

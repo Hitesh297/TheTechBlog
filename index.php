@@ -34,13 +34,18 @@ include('admin/includes/database.php');
     <?php
     if (isset($_GET['id'])) {
 
-        $query = 'SELECT art.id AS "articleid",art.*,a.* FROM articles as art LEFT JOIN author as a on a.id = art.authorId WHERE art.id =' . $_GET['id'];
-        $result = mysqli_query($connect, $query);
-        $record = mysqli_fetch_assoc($result);
+        $query = $connect->prepare('SELECT TOP (1) art.id AS articleid, art.*, a.*
+            FROM articles AS art
+            LEFT JOIN author AS a ON a.id = art.authorId
+            WHERE art.id = :id');
+        $query->execute(['id' => (int) $_GET['id']]);
+        $record = $query->fetch();
     } else {
-        $query = 'SELECT art.id AS "articleid",art.*,a.* FROM articles as art LEFT JOIN author as a on a.id = art.authorId WHERE art.id = 1';
-        $result = mysqli_query($connect, $query);
-        $record = mysqli_fetch_assoc($result);
+        $query = $connect->query('SELECT TOP (1) art.id AS articleid, art.*, a.*
+            FROM articles AS art
+            LEFT JOIN author AS a ON a.id = art.authorId
+            WHERE art.id = 1');
+        $record = $query->fetch();
     }
     ?>
     <div class="flex-container">
@@ -80,10 +85,7 @@ include('admin/includes/database.php');
         </main>
         <?php
         // Get all Articles
-        $getallarticles = 'SELECT *
-                    FROM articles
-                    ORDER BY publishDate DESC';
-        $articleListResult = mysqli_query($connect, $getallarticles);
+        $articleListResult = $connect->query('SELECT * FROM articles ORDER BY publishDate DESC');
 
         ?>
 
@@ -91,7 +93,7 @@ include('admin/includes/database.php');
         <aside id="sidebar-one">
             <h2 id="latest-posts">LATEST POSTS</h2>
             <ul>
-                <?php while ($article = mysqli_fetch_assoc($articleListResult)) : ?>
+                <?php while ($article = $articleListResult->fetch()) : ?>
                     <li>
                         <div class="sidebarlist post-item">
                             <img src="admin/image.php?type=article&id=<?php echo $article['id']; ?>&width=80&height=80" alt="image of youtube icon" height="50">

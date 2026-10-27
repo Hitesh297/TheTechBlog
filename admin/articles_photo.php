@@ -37,11 +37,11 @@ if( isset( $_FILES['photo'] ) )
           break;      
       }
 
-      $query = 'UPDATE articles SET
-        photo = "data:image/'.$type.';base64,'.base64_encode( file_get_contents( $_FILES['photo']['tmp_name'] ) ).'"
-        WHERE id = '.$_GET['id'].'
-        LIMIT 1';
-      mysqli_query( $connect, $query );
+      $query = $connect->prepare('UPDATE articles SET photo = :photo WHERE id = :id');
+      $query->execute([
+        'photo' => 'data:image/' . $type . ';base64,' . base64_encode(file_get_contents($_FILES['photo']['tmp_name'])),
+        'id' => (int) $_GET['id'],
+      ]);
 
     }
     
@@ -59,11 +59,8 @@ if( isset( $_GET['id'] ) )
   // if the request contains delete, initiate delete
   if( isset( $_GET['delete'] ) )
   { 
-    $query = 'UPDATE articles SET
-      photo = ""
-      WHERE id = '.$_GET['id'].'
-      LIMIT 1';
-    $result = mysqli_query( $connect, $query );
+    $query = $connect->prepare("UPDATE articles SET photo = '' WHERE id = :id");
+    $query->execute(['id' => (int) $_GET['id']]);
     
     set_message( 'Article photo has been deleted' );
     
@@ -73,21 +70,17 @@ if( isset( $_GET['id'] ) )
     
   }
   
-  $query = 'SELECT *
-    FROM articles
-    WHERE id = '.$_GET['id'].'
-    LIMIT 1';
-  $result = mysqli_query( $connect, $query );
-  
-  if( !mysqli_num_rows( $result ) )
+  $query = $connect->prepare('SELECT TOP (1) * FROM articles WHERE id = :id');
+  $query->execute(['id' => (int) $_GET['id']]);
+  $record = $query->fetch();
+
+  if (!$record)
   {
     
     header( 'Location: articles.php' );
     die();
     
   }
-  
-  $record = mysqli_fetch_assoc( $result );
   
 }
 

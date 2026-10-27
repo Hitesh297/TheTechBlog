@@ -37,11 +37,11 @@ if( isset( $_FILES['photo'] ) )
           break;      
       }
 
-      $query = 'UPDATE author SET
-        photo = "data:image/'.$type.';base64,'.base64_encode( file_get_contents( $_FILES['photo']['tmp_name'] ) ).'"
-        WHERE id = '.$_GET['id'].'
-        LIMIT 1';
-      mysqli_query( $connect, $query );
+      $query = $connect->prepare('UPDATE author SET photo = :photo WHERE id = :id');
+      $query->execute([
+        'photo' => 'data:image/' . $type . ';base64,' . base64_encode(file_get_contents($_FILES['photo']['tmp_name'])),
+        'id' => (int) $_GET['id'],
+      ]);
 
     }
     
@@ -60,11 +60,8 @@ if( isset( $_GET['id'] ) )
   if( isset( $_GET['delete'] ) )
   {
     
-    $query = 'UPDATE author SET
-      photo = ""
-      WHERE id = '.$_GET['id'].'
-      LIMIT 1';
-    $result = mysqli_query( $connect, $query );
+    $query = $connect->prepare("UPDATE author SET photo = '' WHERE id = :id");
+    $query->execute(['id' => (int) $_GET['id']]);
     
     set_message( 'Author photo has been deleted' );
     
@@ -74,21 +71,17 @@ if( isset( $_GET['id'] ) )
   }
   
   // display existing values on get request
-  $query = 'SELECT *
-    FROM author
-    WHERE id = '.$_GET['id'].'
-    LIMIT 1';
-  $result = mysqli_query( $connect, $query );
-  
-  if( !mysqli_num_rows( $result ) )
+  $query = $connect->prepare('SELECT TOP (1) * FROM author WHERE id = :id');
+  $query->execute(['id' => (int) $_GET['id']]);
+  $record = $query->fetch();
+
+  if (!$record)
   {
     
     header( 'Location: authors.php' );
     die();
     
   }
-  
-  $record = mysqli_fetch_assoc( $result );
   
 }
 

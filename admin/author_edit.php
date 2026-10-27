@@ -19,14 +19,19 @@ if (isset($_POST['firstName'])) {
 
     if ($_POST['lastName'] and $_POST['bio']) {
 
-        $query = 'UPDATE author SET
-      firstName = "' . mysqli_real_escape_string($connect, $_POST['firstName']) . '",
-      lastName = "' . mysqli_real_escape_string($connect, $_POST['lastName']) . '",
-      bio = "' . mysqli_real_escape_string($connect, $_POST['bio']) . '",
-      linkedinUrl = "' . mysqli_real_escape_string($connect, $_POST['linkedinUrl']) . '"
-      WHERE id = ' . $_POST['id'] . '
-      LIMIT 1';
-        mysqli_query($connect, $query);
+        $query = $connect->prepare('UPDATE author SET
+      firstName = :firstName,
+      lastName = :lastName,
+      bio = :bio,
+      linkedinUrl = :linkedinUrl
+      WHERE id = :id');
+        $query->execute([
+            'firstName' => $_POST['firstName'],
+            'lastName' => $_POST['lastName'],
+            'bio' => $_POST['bio'],
+            'linkedinUrl' => $_POST['linkedinUrl'],
+            'id' => (int) $_POST['id'],
+        ]);
 
         set_message('Author has been updated');
     }
@@ -38,19 +43,16 @@ if (isset($_POST['firstName'])) {
 // display form with existing values if get request is received
 if (isset($_GET['id'])) {
 
-    $query = 'SELECT *
-    FROM author
-    WHERE id = ' . $_GET['id'] . '
-    LIMIT 1';
-    $result = mysqli_query($connect, $query);
+    $query = $connect->prepare('SELECT TOP (1) * FROM author WHERE id = :id');
+    $query->execute(['id' => (int) $_GET['id']]);
+    $record = $query->fetch();
 
-    if (!mysqli_num_rows($result)) {
+    if (!$record) {
 
         header('Location: authors.php');
         die();
     }
 
-    $record = mysqli_fetch_assoc($result);
 }
 
 include('includes/header.php');

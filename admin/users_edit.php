@@ -19,22 +19,27 @@ if (isset($_POST['first'])) {
 
     if ($_POST['first'] and $_POST['last'] and $_POST['email']) {
 
-        $query = 'UPDATE users SET
-      first = "' . mysqli_real_escape_string($connect, $_POST['first']) . '",
-      last = "' . mysqli_real_escape_string($connect, $_POST['last']) . '",
-      email = "' . mysqli_real_escape_string($connect, $_POST['email']) . '",
-      active = "' . $_POST['active'] . '"
-      WHERE id = ' . $_GET['id'] . '
-      LIMIT 1';
-        mysqli_query($connect, $query);
+        $query = $connect->prepare('UPDATE users SET
+      first = :first,
+      last = :last,
+      email = :email,
+      active = :active
+      WHERE id = :id');
+        $query->execute([
+            'first' => $_POST['first'],
+            'last' => $_POST['last'],
+            'email' => $_POST['email'],
+            'active' => $_POST['active'],
+            'id' => (int) $_GET['id'],
+        ]);
 
         if ($_POST['password']) {
 
-            $query = 'UPDATE users SET
-        password = "' . md5($_POST['password']) . '"
-        WHERE id = ' . $_GET['id'] . '
-        LIMIT 1';
-            mysqli_query($connect, $query);
+            $query = $connect->prepare('UPDATE users SET password = :password WHERE id = :id');
+            $query->execute([
+                'password' => md5($_POST['password']),
+                'id' => (int) $_GET['id'],
+            ]);
         }
 
         set_message('User has been updated');
@@ -47,19 +52,16 @@ if (isset($_POST['first'])) {
 // display form with existing values when get request is received 
 if (isset($_GET['id'])) {
 
-    $query = 'SELECT *
-    FROM users
-    WHERE id = ' . $_GET['id'] . '
-    LIMIT 1';
-    $result = mysqli_query($connect, $query);
+    $query = $connect->prepare('SELECT TOP (1) * FROM users WHERE id = :id');
+    $query->execute(['id' => (int) $_GET['id']]);
+    $record = $query->fetch();
 
-    if (!mysqli_num_rows($result)) {
+    if (!$record) {
 
         header('Location: users.php');
         die();
     }
 
-    $record = mysqli_fetch_assoc($result);
 }
 
 include('includes/header.php');

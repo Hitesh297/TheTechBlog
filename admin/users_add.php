@@ -12,7 +12,7 @@ if (isset($_POST['first'])) {
 
     if ($_POST['first'] and $_POST['last'] and $_POST['email'] and $_POST['password']) {
 
-        $query = 'INSERT INTO users (
+        $query = $connect->prepare('INSERT INTO users (
         first,
         last,
         email,
@@ -20,14 +20,20 @@ if (isset($_POST['first'])) {
         active,
         dateAdded
       ) VALUES (
-        "' . mysqli_real_escape_string($connect, $_POST['first']) . '",
-        "' . mysqli_real_escape_string($connect, $_POST['last']) . '",
-        "' . mysqli_real_escape_string($connect, $_POST['email']) . '",
-        "' . md5($_POST['password']) . '",
-        "' . $_POST['active'] . '",
-        NOW()
-      )';
-        mysqli_query($connect, $query);
+        :first,
+        :last,
+        :email,
+        :password,
+        :active,
+        SYSDATETIME()
+      )');
+        $query->execute([
+            'first' => $_POST['first'],
+            'last' => $_POST['last'],
+            'email' => $_POST['email'],
+            'password' => md5($_POST['password']),
+            'active' => $_POST['active'],
+        ]);
 
         set_message('User has been added');
     }

@@ -11,10 +11,8 @@ secure();
 if( isset( $_GET['delete'] ) )
 {
   
-  $query = 'DELETE FROM author
-    WHERE id = '.$_GET['delete'].'
-    LIMIT 1';
-  mysqli_query( $connect, $query );
+  $query = $connect->prepare('DELETE FROM author WHERE id = :id');
+  $query->execute(['id' => (int) $_GET['delete']]);
     
   set_message( 'Author has been deleted' );
   
@@ -25,9 +23,7 @@ if( isset( $_GET['delete'] ) )
 
 include( 'includes/header.php' );
 
-$query = 'SELECT *
-  FROM author';
-$result = mysqli_query( $connect, $query );
+$result = $connect->query('SELECT * FROM author');
 
 ?>
 
@@ -42,7 +38,7 @@ $result = mysqli_query( $connect, $query );
     <th></th>
     <th></th>
   </tr>
-  <?php while( $record = mysqli_fetch_assoc( $result ) ): ?>
+  <?php while( $record = $result->fetch() ): ?>
     <tr>
       <td>
          <img src="image.php?type=author&id=<?php echo $record['id']; ?>&width=200&height=300&format=inside">

@@ -11,10 +11,8 @@ secure();
 if( isset( $_GET['delete'] ) )
 {
   
-  $query = 'DELETE FROM users
-    WHERE id = '.$_GET['delete'].'
-    LIMIT 1';
-  mysqli_query( $connect, $query );
+  $query = $connect->prepare('DELETE FROM users WHERE id = :id');
+  $query->execute(['id' => (int) $_GET['delete']]);
   
   set_message( 'User has been deleted' );
   
@@ -25,11 +23,15 @@ if( isset( $_GET['delete'] ) )
 
 include( 'includes/header.php' );
 
-$query = 'SELECT *
-  FROM users 
-  '.( ( $_SESSION['id'] != 1 and $_SESSION['id'] != 4 ) ? 'WHERE id = '.$_SESSION['id'].' ' : '' ).'
-  ORDER BY last,first';
-$result = mysqli_query( $connect, $query );
+$query = 'SELECT * FROM users';
+$parameters = [];
+if ($_SESSION['id'] != 1 && $_SESSION['id'] != 4) {
+  $query .= ' WHERE id = :id';
+  $parameters['id'] = (int) $_SESSION['id'];
+}
+$query .= ' ORDER BY last, first';
+$result = $connect->prepare($query);
+$result->execute($parameters);
 
 ?>
 
@@ -44,7 +46,7 @@ $result = mysqli_query( $connect, $query );
     <th></th>
     <th>Is Active</th>
   </tr>
-  <?php while( $record = mysqli_fetch_assoc( $result ) ): ?>
+  <?php while( $record = $result->fetch() ): ?>
     <tr>
       <td><?php echo $record['id']; ?></td>
       <td>

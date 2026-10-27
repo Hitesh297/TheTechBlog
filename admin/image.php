@@ -16,12 +16,9 @@ switch ($_GET['type']) {
 
   case 'article':
 
-    $query = 'SELECT photo 
-      FROM articles
-      WHERE id = ' . $_GET['id'] . '
-      LIMIT 1';
-    $result = mysqli_query($connect, $query);
-    $record = mysqli_fetch_assoc($result);
+    $query = $connect->prepare('SELECT TOP (1) photo FROM articles WHERE id = :id');
+    $query->execute(['id' => (int) $_GET['id']]);
+    $record = $query->fetch();
 
     if (!$record['photo']) $record['photo'] = $camera;
 
@@ -29,12 +26,9 @@ switch ($_GET['type']) {
 
   case 'author':
 
-    $query = 'SELECT photo 
-        FROM author
-        WHERE id = ' . $_GET['id'] . '
-        LIMIT 1';
-    $result = mysqli_query($connect, $query);
-    $record = mysqli_fetch_assoc($result);
+    $query = $connect->prepare('SELECT TOP (1) photo FROM author WHERE id = :id');
+    $query->execute(['id' => (int) $_GET['id']]);
+    $record = $query->fetch();
 
     if (!$record['photo']) $record['photo'] = $person;
 

@@ -19,14 +19,18 @@ if (isset($_POST['title'])) {
 
   if ($_POST['title'] and $_POST['content']) {
 
-    $query = 'UPDATE articles SET
-      title = "' . mysqli_real_escape_string($connect, $_POST['title']) . '",
-      content = "' . mysqli_real_escape_string($connect, $_POST['content']) . '",
-      publishDate = NOW(),
-      authorId = "' . mysqli_real_escape_string($connect, $_POST['authorId']) . '"
-      WHERE id = ' . $_POST['id'] . '
-      LIMIT 1';
-    mysqli_query($connect, $query);
+    $query = $connect->prepare('UPDATE articles SET
+      title = :title,
+      content = :content,
+      publishDate = SYSDATETIME(),
+      authorId = :authorId
+      WHERE id = :id');
+    $query->execute([
+      'title' => $_POST['title'],
+      'content' => $_POST['content'],
+      'authorId' => (int) $_POST['authorId'],
+      'id' => (int) $_POST['id'],
+    ]);
 
     set_message( 'Article has been updated' );
 
@@ -39,19 +43,17 @@ if (isset($_POST['title'])) {
 // display form with current values if get request is received
 if (isset($_GET['id'])) {
 
-  $query = 'SELECT *
-    FROM articles
-    WHERE id = ' . $_GET['id'] . '
-    LIMIT 1';
-  $result = mysqli_query($connect, $query);
+  $query = $connect->prepare('SELECT TOP (1) * FROM articles WHERE id = :id');
+  $query->execute(['id' => (int) $_GET['id']]);
+  $result = $query;
 
-  if (!mysqli_num_rows($result)) {
+  $record = $result->fetch();
+  if (!$record) {
 
     header('Location: projects.php');
     die();
   }
 
-  $record = mysqli_fetch_assoc($result);
 }
 
 include('includes/header.php');
@@ -97,13 +99,10 @@ include('includes/header.php');
   <td>
   <?php
 
-  $authorsquery = 'SELECT *
-  FROM author';
-
-  $authorsResult = mysqli_query($connect, $authorsquery);
+  $authorsResult = $connect->query('SELECT * FROM author');
 
   echo '<select name="authorId" id="authorId">';
-  while ($author = mysqli_fetch_assoc($authorsResult)) {
+  while ($author = $authorsResult->fetch()) {
     echo '<option value="' . $author['id'] . '"';
     if ($author['id'] == $record['authorId']) echo ' selected="selected"';
     echo '>' . $author['firstName'] . ' ' . $author['lastName'] . '</option>';

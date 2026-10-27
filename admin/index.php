@@ -18,18 +18,19 @@ if(isset($_SESSION['id']))
 if( isset( $_POST['email'] ) )
 {
   
-  $query = 'SELECT *
-    FROM users
-    WHERE email = "'.$_POST['email'].'"
-    AND password = "'.md5( $_POST['password'] ).'"
-    AND active = "Yes"
-    LIMIT 1';
-  $result = mysqli_query( $connect, $query );
-  
-  if( mysqli_num_rows( $result ) )
+  $query = $connect->prepare('SELECT TOP (1) * FROM users
+    WHERE email = :email
+    AND password = :password
+    AND active = :active');
+  $query->execute([
+    'email' => $_POST['email'],
+    'password' => md5($_POST['password']),
+    'active' => 'Yes',
+  ]);
+  $record = $query->fetch();
+
+  if ($record)
   {
-    
-    $record = mysqli_fetch_assoc( $result );
     
     $_SESSION['id'] = $record['id'];
     $_SESSION['email'] = $record['email'];

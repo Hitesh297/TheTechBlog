@@ -12,18 +12,23 @@ if (isset($_POST['firstName'])) {
 
   if ($_POST['lastName'] and $_POST['bio']) {
 
-    $query = 'INSERT INTO author (
+    $query = $connect->prepare('INSERT INTO author (
         firstName,
         lastName,
         bio,
         linkedinUrl
       ) VALUES (
-         "' . mysqli_real_escape_string($connect, $_POST['firstName']) . '",
-         "' . mysqli_real_escape_string($connect, $_POST['lastName']) . '",
-         "' . mysqli_real_escape_string($connect, $_POST['bio']) . '",
-         "' . mysqli_real_escape_string($connect, $_POST['linkedinUrl']) . '"
-      )';
-    mysqli_query($connect, $query);
+         :firstName,
+         :lastName,
+         :bio,
+         :linkedinUrl
+      )');
+    $query->execute([
+      'firstName' => $_POST['firstName'],
+      'lastName' => $_POST['lastName'],
+      'bio' => $_POST['bio'],
+      'linkedinUrl' => $_POST['linkedinUrl'],
+    ]);
 
     set_message('Author has been added');
   }
