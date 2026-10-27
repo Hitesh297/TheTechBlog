@@ -38,6 +38,15 @@ switch ($_GET['type']) {
 include 'includes/wideimage/WideImage.php';
 
 $data = base64_decode(explode(',', $record['photo'])[1]);
+
+// Stream WebP directly when GD cannot decode it.
+if (substr($data, 0, 4) === 'RIFF' && substr($data, 8, 4) === 'WEBP' &&
+    !(gd_info()['WebP Support'] ?? false)) {
+  header('Content-Type: image/webp');
+  echo $data;
+  exit;
+}
+
 $img = WideImage::loadFromString($data);
 
 if (isset($_GET['width']) and isset($_GET['height'])) {

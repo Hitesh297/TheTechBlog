@@ -23,8 +23,9 @@ process environment take precedence over values in `.env`.
 
 Quote values in `.env` if they contain leading/trailing whitespace or a `#`.
 The SQL Server PDO driver and PHP GD extension must be enabled. GD is required
-to resize and serve article and author photos. Connections require encryption
-and validate the server certificate.
+to resize and serve article and author photos. If GD lacks WebP support, WebP
+photos are served without resizing. Connections require encryption and validate
+the server certificate.
 
 ## Azure App Service deployment
 
